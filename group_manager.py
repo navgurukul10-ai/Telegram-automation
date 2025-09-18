@@ -4,6 +4,7 @@ import logging
 import asyncio
 from urllib.parse import urlparse
 from telethon import functions
+from telethon.errors import FloodWaitError, InviteHashInvalidError, InviteHashExpiredError, UserAlreadyParticipantError, ChannelsTooMuchError, ChannelsAdminPublicTooMuchError
 from datetime import datetime
 from db import record_group_join
 
@@ -89,13 +90,29 @@ async def join_groups(client, groups, count, joined_groups, simulation=False, de
                 await record_group_join(group, datetime.utcnow().isoformat(), account_phone)
             else:
                 mode, target = await _extract_join_target(client, group)
-                if mode == "invite":
-                    await client(functions.messages.ImportChatInviteRequest(hash=target))
-                else:
-                    await client(functions.channels.JoinChannelRequest(channel=target))
-                logging.info(f"✅ Joined: {group}")
-                await _append_group_csv(group, account_phone)
-                await record_group_join(group, datetime.utcnow().isoformat(), account_phone)
+                try:
+                    if mode == "invite":
+                        await client(functions.messages.ImportChatInviteRequest(hash=target))
+                    else:
+                        await client(functions.channels.JoinChannelRequest(channel=target))
+                    logging.info(f"✅ Joined: {group}")
+                    await _append_group_csv(group, account_phone)
+                    await record_group_join(group, datetime.utcnow().isoformat(), account_phone)
+                except UserAlreadyParticipantError:
+                    logging.info(f"ℹ️ Already a participant: {group}")
+                    await _append_group_csv(group, account_phone)
+                    await record_group_join(group, datetime.utcnow().isoformat(), account_phone)
+                except (InviteHashInvalidError, InviteHashExpiredError) as e:
+                    logging.warning(f"❌ Invalid/expired invite for {group}: {e}")
+                except (ChannelsTooMuchError, ChannelsAdminPublicTooMuchError) as e:
+                    logging.warning(f"🚫 Channel limit reached for account {account_phone}: {e}")
+                    # Stop further joins for this account for now
+                    break
+                except FloodWaitError as e:
+                    wait_seconds = int(getattr(e, 'seconds', 60))
+                    logging.warning(f"⏳ Flood wait for {wait_seconds}s on {account_phone} while joining {group}")
+                    await asyncio.sleep(wait_seconds)
+                    # don't count as joined, but continue with next
             joined_groups.add(group)
             joined_today.append(group)
             if len(joined_today) >= count:

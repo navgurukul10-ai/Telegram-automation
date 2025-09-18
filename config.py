@@ -19,9 +19,11 @@ for i in range(1, 5):
     phone = os.getenv(f"ACCOUNT_{i}_PHONE")
     api_id = os.getenv(f"ACCOUNT_{i}_API_ID")
     api_hash = os.getenv(f"ACCOUNT_{i}_API_HASH")
+    session = os.getenv(f"ACCOUNT_{i}_SESSION")
     if phone and api_id and api_hash:
         ACCOUNTS.append({
             "phone": phone,
             "api_id": int(api_id),
-            "api_hash": api_hash
+            "api_hash": api_hash,
+            "session": (session or "").strip()
         })
