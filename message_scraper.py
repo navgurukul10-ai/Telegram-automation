@@ -3,6 +3,7 @@ import os
 import logging
 import csv
 from db import record_messages
+from telethon.errors import FloodWaitError
 
 async def scrape_messages(client, group, limit=100, simulation=False):
     messages = []
@@ -18,6 +19,10 @@ async def scrape_messages(client, group, limit=100, simulation=False):
                 "sender_id": msg.sender_id,
                 "text": msg.message
             })
+    except FloodWaitError as e:
+        wait_seconds = int(getattr(e, 'seconds', 60))
+        logging.warning(f"⏳ Flood wait for {wait_seconds}s while scraping {group}")
+        return []
     except Exception as e:
         logging.warning(f"⚠️ Failed to scrape {group}: {e}")
         return []
