@@ -1,2 +1,9 @@
-python-dotenv==1.0.1 
-Telethon==1.36.0 
+python-dotenv==1.0.1
+Telethon==1.36.0
+# Python 3.8 compatible pins
+pandas==1.5.3
+numpy==1.24.4
+scikit-learn==1.2.2
+elasticsearch==8.11.0
+structlog==23.2.0
+tenacity==8.2.3
