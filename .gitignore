@@ -8,6 +8,7 @@ __pycache__/
 venv/
 env/
 ENV/
+data/messages.csv
 
 # Packaging / build
 build/
