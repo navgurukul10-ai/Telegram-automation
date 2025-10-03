@@ -54,6 +54,9 @@ data/joined_groups.json
 # Cache / misc
 *.sqlite3 
 
+# CSV files
+*.csv
+
 # Private keys and secrets (prevent committing)
 *.pem
 *.key
