@@ -65,4 +65,4 @@ id_ed25519
 ai
 ai.pub
 git-api
-git-api.pub 
+git-api.pub data/messages.csv
